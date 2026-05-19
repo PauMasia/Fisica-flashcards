@@ -1,0 +1,294 @@
+{
+  "formulas": [
+    {
+      "id": "flux",
+      "topic": "Electromagnetismo",
+      "name": "Flujo magnético",
+      "formula": "Φ = B · S · cos(α)",
+      "gives": "flujo magnético",
+      "units": "weber (Wb)",
+      "vars": "B: campo magnético (T), S: superficie (m²), α: ángulo",
+      "use": "calcular cuánto campo magnético atraviesa una superficie",
+      "explanation": "El flujo mide campo magnético atravesando una superficie. Si el campo entra perpendicular, el coseno vale 1; si va paralelo, el flujo baja hasta 0."
+    },
+    {
+      "id": "ohm",
+      "topic": "Electromagnetismo",
+      "name": "Ley de Ohm",
+      "formula": "I = ε / R",
+      "gives": "intensidad de corriente",
+      "units": "amperios (A)",
+      "vars": "ε: fuerza electromotriz o tensión (V), R: resistencia (Ω)",
+      "use": "calcular la corriente de un circuito sencillo",
+      "explanation": "La intensidad aumenta si sube la tensión y disminuye si aumenta la resistencia. Recuerda: amperios para I."
+    },
+    {
+      "id": "motional_emf",
+      "topic": "Electromagnetismo",
+      "name": "Fem inducida en barra móvil",
+      "formula": "ε = B · L · v",
+      "gives": "fuerza electromotriz inducida",
+      "units": "voltios (V)",
+      "vars": "B: campo magnético (T), L: longitud (m), v: velocidad (m/s)",
+      "use": "una barra o conductor se mueve dentro de un campo magnético",
+      "explanation": "Al moverse un conductor en un campo magnético se induce una tensión. B, L y v multiplican directamente."
+    },
+    {
+      "id": "faraday",
+      "topic": "Electromagnetismo",
+      "name": "Ley de Faraday-Lenz",
+      "formula": "ε = -N · ΔΦ / Δt",
+      "gives": "fem inducida",
+      "units": "voltios (V)",
+      "vars": "N: número de espiras, ΔΦ: variación de flujo (Wb), Δt: tiempo (s)",
+      "use": "cambia el flujo magnético en una bobina",
+      "explanation": "Si cambia el flujo magnético, aparece una fem inducida. El signo negativo indica que se opone al cambio, por la ley de Lenz."
+    },
+    {
+      "id": "mag_force_charge",
+      "topic": "Electromagnetismo",
+      "name": "Fuerza magnética sobre carga",
+      "formula": "F = q · B · v",
+      "gives": "fuerza magnética",
+      "units": "newton (N)",
+      "vars": "q: carga (C), B: campo magnético (T), v: velocidad (m/s)",
+      "use": "una carga se mueve en un campo magnético perpendicular",
+      "explanation": "Una carga en movimiento dentro de un campo magnético puede sufrir una fuerza. En forma completa suele depender también del seno del ángulo."
+    },
+    {
+      "id": "mag_force_wire",
+      "topic": "Electromagnetismo",
+      "name": "Fuerza sobre conductor",
+      "formula": "F = I · L · B",
+      "gives": "fuerza magnética sobre un cable",
+      "units": "newton (N)",
+      "vars": "I: intensidad (A), L: longitud (m), B: campo magnético (T)",
+      "use": "un cable con corriente está dentro de un campo magnético",
+      "explanation": "Un conductor con corriente dentro de un campo magnético puede recibir una fuerza. Si el cable está perpendicular al campo, se usa I·L·B."
+    },
+    {
+      "id": "power_ui",
+      "topic": "Electromagnetismo",
+      "name": "Potencia eléctrica",
+      "formula": "P = ε · I",
+      "gives": "potencia eléctrica",
+      "units": "vatios (W)",
+      "vars": "ε: tensión o fem (V), I: intensidad (A)",
+      "use": "calcular potencia con tensión e intensidad",
+      "explanation": "La potencia indica energía por segundo. Si multiplicas voltios por amperios, obtienes vatios."
+    },
+    {
+      "id": "joule",
+      "topic": "Electromagnetismo",
+      "name": "Potencia por efecto Joule",
+      "formula": "P = I² · R",
+      "gives": "potencia disipada",
+      "units": "vatios (W)",
+      "vars": "I: intensidad (A), R: resistencia (Ω)",
+      "use": "calcular potencia perdida en una resistencia",
+      "explanation": "Es típica de resistencias. Ojo: la intensidad está al cuadrado, por eso si I se duplica, la potencia se multiplica por 4."
+    },
+    {
+      "id": "newton2",
+      "topic": "Mecánica/Energía",
+      "name": "Segunda ley de Newton",
+      "formula": "F = m · a",
+      "gives": "fuerza resultante",
+      "units": "newton (N)",
+      "vars": "m: masa (kg), a: aceleración (m/s²)",
+      "use": "relacionar fuerza, masa y aceleración",
+      "explanation": "Si una masa acelera, tiene una fuerza resultante. La aceleración siempre va en m/s²."
+    },
+    {
+      "id": "kinetic",
+      "topic": "Mecánica/Energía",
+      "name": "Energía cinética",
+      "formula": "Ec = 1/2 · m · v²",
+      "gives": "energía cinética",
+      "units": "julios (J)",
+      "vars": "m: masa (kg), v: velocidad (m/s)",
+      "use": "calcular la energía que tiene un cuerpo por moverse",
+      "explanation": "La energía cinética depende de la velocidad al cuadrado. Si la velocidad se duplica, Ec se multiplica por 4."
+    },
+    {
+      "id": "grav_force",
+      "topic": "Gravitación",
+      "name": "Fuerza gravitatoria",
+      "formula": "Fg = G · M · m / r²",
+      "gives": "fuerza gravitatoria",
+      "units": "newton (N)",
+      "vars": "G: constante gravitatoria, M y m: masas (kg), r: distancia (m)",
+      "use": "calcular la atracción entre dos masas",
+      "explanation": "La gravedad atrae masas. La fuerza baja con el cuadrado de la distancia: si r se duplica, la fuerza queda en una cuarta parte."
+    },
+    {
+      "id": "centripetal",
+      "topic": "Gravitación",
+      "name": "Fuerza centrípeta",
+      "formula": "Fn = m · v² / R",
+      "gives": "fuerza centrípeta",
+      "units": "newton (N)",
+      "vars": "m: masa (kg), v: velocidad (m/s), R: radio (m)",
+      "use": "resolver movimiento circular",
+      "explanation": "Es la fuerza necesaria para mantener un cuerpo girando. Apunta hacia el centro de la trayectoria."
+    },
+    {
+      "id": "orbital_speed",
+      "topic": "Gravitación",
+      "name": "Velocidad orbital",
+      "formula": "v = 2πR / T",
+      "gives": "velocidad orbital",
+      "units": "metros por segundo (m/s)",
+      "vars": "R: radio de la órbita (m), T: periodo (s)",
+      "use": "calcular velocidad si conoces radio y periodo",
+      "explanation": "Es distancia de una vuelta entre tiempo de una vuelta. El periodo T siempre se pone en segundos."
+    },
+    {
+      "id": "kepler3",
+      "topic": "Gravitación",
+      "name": "Tercera ley de Kepler",
+      "formula": "T² / R³ = constante",
+      "gives": "relación periodo-radio orbital",
+      "units": "comparación, no una unidad simple",
+      "vars": "T: periodo (s), R: radio o semieje mayor (m)",
+      "use": "comparar planetas o satélites que orbitan el mismo cuerpo",
+      "explanation": "Sirve para comparar órbitas: a mayor distancia, mayor periodo. En ejercicios suele usarse T1²/R1³ = T2²/R2³."
+    },
+    {
+      "id": "grav_potential_energy",
+      "topic": "Gravitación",
+      "name": "Energía potencial gravitatoria",
+      "formula": "Ep = -G · M · m / r",
+      "gives": "energía potencial gravitatoria",
+      "units": "julios (J)",
+      "vars": "G: constante, M y m: masas (kg), r: distancia (m)",
+      "use": "calcular energía de una masa dentro de un campo gravitatorio",
+      "explanation": "En gravitación suele ser negativa tomando cero en el infinito. Cuanto más cerca de la masa grande, más negativa."
+    },
+    {
+      "id": "grav_potential",
+      "topic": "Gravitación",
+      "name": "Potencial gravitatorio",
+      "formula": "V = -G · M / r",
+      "gives": "potencial gravitatorio",
+      "units": "julios por kilogramo (J/kg)",
+      "vars": "G: constante, M: masa creadora del campo, r: distancia",
+      "use": "calcular potencial creado por una masa sin multiplicar por la masa pequeña",
+      "explanation": "El potencial gravitatorio es energía por unidad de masa. Luego Ep = m·V."
+    },
+    {
+      "id": "grav_work",
+      "topic": "Gravitación",
+      "name": "Trabajo gravitatorio",
+      "formula": "W = m · (V₀ - Vf)",
+      "gives": "trabajo del campo gravitatorio",
+      "units": "julios (J)",
+      "vars": "m: masa (kg), V₀ y Vf: potencial inicial y final (J/kg)",
+      "use": "calcular trabajo al mover una masa entre dos potenciales gravitatorios",
+      "explanation": "El trabajo del campo se relaciona con la bajada de energía potencial. Si usas potencial gravitatorio, multiplicas por m."
+    },
+    {
+      "id": "electric_field",
+      "topic": "Electricidad",
+      "name": "Campo eléctrico de carga puntual",
+      "formula": "E = K · Q / r²",
+      "gives": "campo eléctrico",
+      "units": "newton por culombio (N/C)",
+      "vars": "K: constante eléctrica, Q: carga creadora (C), r: distancia (m)",
+      "use": "calcular el campo creado por una carga puntual",
+      "explanation": "El campo eléctrico indica la fuerza que habría por cada culombio de carga de prueba. Baja con r²."
+    },
+    {
+      "id": "electric_force",
+      "topic": "Electricidad",
+      "name": "Fuerza eléctrica",
+      "formula": "F = q · E",
+      "gives": "fuerza eléctrica",
+      "units": "newton (N)",
+      "vars": "q: carga de prueba (C), E: campo eléctrico (N/C)",
+      "use": "calcular fuerza sobre una carga dentro de un campo eléctrico",
+      "explanation": "Si sabes el campo y colocas una carga q, la fuerza es q·E. Si q es negativa, el sentido se invierte."
+    },
+    {
+      "id": "electric_potential",
+      "topic": "Electricidad",
+      "name": "Potencial eléctrico",
+      "formula": "V = K · Q / r",
+      "gives": "potencial eléctrico",
+      "units": "voltios (V)",
+      "vars": "K: constante eléctrica, Q: carga creadora (C), r: distancia (m)",
+      "use": "calcular potencial creado por una carga puntual",
+      "explanation": "El potencial eléctrico es energía por unidad de carga. No lleva r²: lleva solo r."
+    },
+    {
+      "id": "electric_potential_energy",
+      "topic": "Electricidad",
+      "name": "Energía potencial eléctrica",
+      "formula": "Ep = q · V",
+      "gives": "energía potencial eléctrica",
+      "units": "julios (J)",
+      "vars": "q: carga (C), V: potencial eléctrico (V)",
+      "use": "calcular energía de una carga en un potencial",
+      "explanation": "Si una carga está en un potencial, tiene energía potencial eléctrica. Culombios por voltios dan julios."
+    },
+    {
+      "id": "coulomb_energy",
+      "topic": "Electricidad",
+      "name": "Energía potencial entre dos cargas",
+      "formula": "Ep = K · Q · q / r",
+      "gives": "energía potencial eléctrica",
+      "units": "julios (J)",
+      "vars": "K: constante, Q y q: cargas (C), r: distancia (m)",
+      "use": "calcular energía entre dos cargas puntuales",
+      "explanation": "Cargas del mismo signo dan energía positiva; signos opuestos dan energía negativa."
+    },
+    {
+      "id": "electric_work",
+      "topic": "Electricidad",
+      "name": "Trabajo eléctrico",
+      "formula": "W = -ΔEp = q · (V₀ - Vf)",
+      "gives": "trabajo del campo eléctrico",
+      "units": "julios (J)",
+      "vars": "q: carga (C), V₀ y Vf: potencial inicial/final (V)",
+      "use": "calcular trabajo al mover una carga entre dos potenciales",
+      "explanation": "El campo eléctrico hace trabajo cuando cambia la energía potencial. Muy típico: W = q·(V inicial - V final)."
+    }
+  ],
+  "constants": [
+    {
+      "topic": "Gravitación",
+      "name": "Constante gravitatoria universal",
+      "symbol": "G",
+      "value": "6,67 · 10⁻¹¹ N·m²/kg²",
+      "explanation": "Aparece en fuerza, campo, potencial y energía gravitatoria."
+    },
+    {
+      "topic": "Electricidad",
+      "name": "Constante eléctrica",
+      "symbol": "K",
+      "value": "9 · 10⁹ N·m²/C²",
+      "explanation": "Aparece en campo, potencial y energía eléctrica de cargas puntuales."
+    },
+    {
+      "topic": "Electricidad",
+      "name": "Carga del protón",
+      "symbol": "qₚ",
+      "value": "+1,6 · 10⁻¹⁹ C",
+      "explanation": "El protón tiene carga positiva."
+    },
+    {
+      "topic": "Electricidad",
+      "name": "Carga del electrón",
+      "symbol": "qₑ",
+      "value": "-1,6 · 10⁻¹⁹ C",
+      "explanation": "El electrón tiene carga negativa."
+    },
+    {
+      "topic": "Electricidad",
+      "name": "Permitividad del vacío",
+      "symbol": "ε₀",
+      "value": "8,85 · 10⁻¹² F/m",
+      "explanation": "Se relaciona con K mediante K = 1/(4π ε₀)."
+    }
+  ]
+}

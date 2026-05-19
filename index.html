@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PAU Física - Fórmulas</title>
+  <link rel="stylesheet" href="./styles.css" />
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <main class="app">
+    <header class="header">
+      <h1>PAU Física - Fórmulas</h1>
+      <p>Practica fórmulas, unidades, letras y cuándo usar cada una.</p>
+      <div class="status-line">
+        <span id="sessionModeLabel">Modo infinito</span>
+        <strong id="sessionStatus">Listo para empezar</strong>
+      </div>
+    </header>
+
+    <section class="controls card">
+      <label>
+        Tipo de práctica
+        <select id="practiceSelect">
+          <option value="quiz">Quiz con opciones</option>
+          <option value="flashcards">Flashcards</option>
+        </select>
+      </label>
+
+      <label>
+        Recorrido
+        <select id="modeSelect">
+          <option value="infinite">Modo infinito</option>
+          <option value="review">Recorrer todo</option>
+        </select>
+      </label>
+
+      <label>
+        Tema
+        <select id="topicSelect">
+          <option value="all">Todos los temas</option>
+          <option value="Gravitación">Gravitación</option>
+          <option value="Electricidad">Electricidad</option>
+          <option value="Electromagnetismo">Electromagnetismo</option>
+          <option value="Mecánica/Energía">Mecánica/Energía</option>
+        </select>
+      </label>
+
+      <label class="check-row" title="Así no sabes si la pregunta es de gravitación, electricidad, etc.">
+        <input id="hideMetaToggle" type="checkbox" />
+        Ocultar tema y tipo
+      </label>
+
+      <button id="startBtn" class="primary">Empezar</button>
+      <button id="resetStatsBtn">Borrar estadísticas</button>
+    </section>
+
+    <section class="layout">
+      <section class="main-panel card">
+        <div class="question-card" id="questionCard">
+          <div class="card-top">
+            <div class="meta-row" id="metaRow">
+              <span class="badge" id="topicBadge">Tema</span>
+              <span class="badge" id="typeBadge">Tipo</span>
+            </div>
+            <span class="counter" id="counterLabel">0 / 0</span>
+          </div>
+
+          <div id="quizView">
+            <p class="small-title">Pregunta</p>
+            <h2 class="question" id="questionText">Pulsa empezar para practicar.</h2>
+            <div class="formula-box" id="formulaBox" hidden></div>
+            <div id="options" class="options-grid"></div>
+          </div>
+
+          <div id="flashcardView" class="flashcard-view" hidden>
+            <button id="flashcard" class="flashcard" type="button" aria-label="Girar tarjeta">
+              <div class="flash-inner" id="flashInner">
+                <div class="flash-face flash-front">
+                  <span class="small-title">Delante</span>
+                  <h2 id="flashFrontTitle">Pulsa empezar</h2>
+                  <p id="flashFrontText">Aquí aparecerá la pregunta o fórmula.</p>
+                </div>
+                <div class="flash-face flash-back">
+                  <span class="small-title">Respuesta</span>
+                  <h2 id="flashBackTitle">Respuesta</h2>
+                  <p id="flashBackText">Aquí verás la explicación.</p>
+                </div>
+              </div>
+            </button>
+            <div class="flash-actions">
+              <button id="flipBtn">Girar</button>
+              <button id="knowBtn" class="success">La sabía</button>
+              <button id="missBtn" class="danger">He fallado</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="feedback" class="feedback-card" hidden>
+          <h3 id="feedbackTitle">Resultado</h3>
+          <p id="feedbackText"></p>
+          <p id="extraText"></p>
+
+          <div id="variablesPanel" class="variables-panel" hidden>
+            <h4>Qué significa cada letra</h4>
+            <div id="variablesList" class="variables-list"></div>
+          </div>
+        </div>
+
+        <div class="bottom-actions">
+          <button id="hintBtn">Pista</button>
+          <button id="nextBtn" class="primary" disabled>Siguiente</button>
+        </div>
+      </section>
+
+      <aside class="side-panel">
+        <div class="card stats-card">
+          <div class="stats-grid">
+            <div class="stat"><strong id="okStat">0</strong><span>Aciertos</span></div>
+            <div class="stat"><strong id="badStat">0</strong><span>Fallos</span></div>
+            <div class="stat"><strong id="pctStat">0%</strong><span>Precisión</span></div>
+          </div>
+          <p class="progress-label" id="progressLabel">Progreso del repaso: 0 / 0</p>
+          <div class="progress"><div id="progressBar"></div></div>
+        </div>
+
+        <details class="card formula-drawer" open>
+          <summary>Fórmulas incluidas</summary>
+          <div class="formula-list" id="formulaList"></div>
+        </details>
+
+        <details class="card formula-drawer">
+          <summary>Consejo rápido</summary>
+          <div class="tip-list">
+            <div class="mini-card">
+              <b>1. Mira qué te piden</b>
+              <small>Fuerza, campo, potencial, energía, flujo, fem, intensidad o potencia.</small>
+            </div>
+            <div class="mini-card">
+              <b>2. Mira las unidades</b>
+              <small>N, N/C, V, J, Wb, A y W suelen delatar la fórmula.</small>
+            </div>
+            <div class="mini-card">
+              <b>3. Aprende las letras</b>
+              <small>Después de responder aparece qué significa cada letra de la fórmula.</small>
+            </div>
+          </div>
+        </details>
+      </aside>
+    </section>
+  </main>
+
+  <div id="solutionOverlay" class="solution-overlay" hidden>
+    <section class="solution-modal" role="dialog" aria-modal="true" aria-labelledby="solutionTitle">
+      <div class="solution-head">
+        <h3 id="solutionTitle">Solución</h3>
+        <button id="closeSolutionBtn" class="icon-btn" type="button" aria-label="Cerrar solución">×</button>
+      </div>
+      <p id="solutionText"></p>
+      <p id="solutionExtra"></p>
+      <div id="solutionVariablesPanel" class="variables-panel" hidden>
+        <h4>Qué significa cada letra</h4>
+        <div id="solutionVariablesList" class="variables-list"></div>
+      </div>
+      <div class="solution-actions">
+        <button id="closeSolutionBottomBtn" type="button">Cerrar</button>
+        <button id="nextFromSolutionBtn" class="primary" type="button">Siguiente</button>
+      </div>
+    </section>
+  </div>
+
+</body>
+</html>
