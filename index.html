@@ -18,57 +18,47 @@
       </div>
     </header>
 
-    <section class="controls card" id="controlsPanel">
-      <div class="controls-head">
-        <strong>Opciones</strong>
-        <button id="toggleControlsBtn" type="button">Ocultar opciones</button>
-      </div>
+    <section class="controls card">
+      <label>
+        Tipo de práctica
+        <select id="practiceSelect">
+          <option value="quiz">Quiz con opciones</option>
+          <option value="flashcards">Flashcards</option>
+          <option value="builder">Elegir fórmulas necesarias</option>
+        </select>
+      </label>
 
-      <div class="controls-body" id="controlsBody">
-        <label>
-          Tipo de práctica
-          <select id="practiceSelect">
-            <option value="quiz">Quiz con opciones</option>
-            <option value="flashcards">Flashcards</option>
-          </select>
-        </label>
+      <label>
+        Recorrido
+        <select id="modeSelect">
+          <option value="infinite">Modo infinito</option>
+          <option value="review">Recorrer todo</option>
+        </select>
+      </label>
 
-        <label>
-          Recorrido
-          <select id="modeSelect">
-            <option value="infinite">Modo infinito</option>
-            <option value="review">Recorrer todo</option>
-          </select>
-        </label>
+      <label>
+        Tema
+        <select id="topicSelect">
+          <option value="all">Todos los temas</option>
+          <option value="Gravitación">Gravitación</option>
+          <option value="Electricidad">Electricidad</option>
+          <option value="Electromagnetismo">Electromagnetismo</option>
+          <option value="Mecánica/Energía">Mecánica/Energía</option>
+        </select>
+      </label>
 
-        <label>
-          Tema
-          <select id="topicSelect">
-            <option value="all">Todos los temas</option>
-            <option value="Gravitación">Gravitación</option>
-            <option value="Electricidad">Electricidad</option>
-            <option value="Electromagnetismo">Electromagnetismo</option>
-            <option value="Mecánica/Energía">Mecánica/Energía</option>
-          </select>
-        </label>
+      <label class="check-row" title="Así no sabes si la pregunta es de gravitación, electricidad, etc.">
+        <input id="hideMetaToggle" type="checkbox" />
+        Ocultar tema y tipo
+      </label>
 
-        <label>
-          Tamaño interfaz
-          <select id="uiSizeSelect">
-            <option value="small">Pequeño / móvil</option>
-            <option value="medium">Medio</option>
-            <option value="large">Grande</option>
-          </select>
-        </label>
+      <label class="check-row" title="En el modo de fórmulas necesarias, muestra también nombre y pista de uso.">
+        <input id="builderHelpToggle" type="checkbox" />
+        Mostrar ayuda en tarjetas de fórmulas
+      </label>
 
-        <label class="check-row" title="Así no sabes si la pregunta es de gravitación, electricidad, etc.">
-          <input id="hideMetaToggle" type="checkbox" />
-          Ocultar tema y tipo
-        </label>
-
-        <button id="startBtn" class="primary">Empezar</button>
-        <button id="resetStatsBtn">Borrar estadísticas</button>
-      </div>
+      <button id="startBtn" class="primary">Empezar</button>
+      <button id="resetStatsBtn">Borrar estadísticas</button>
     </section>
 
     <section class="layout">
@@ -110,6 +100,31 @@
               <button id="missBtn" class="danger">He fallado</button>
             </div>
           </div>
+
+          <div id="builderView" class="builder-view" hidden>
+            <p class="small-title">Te pido</p>
+            <h2 class="question" id="builderTargetText">Pulsa empezar.</h2>
+            <p class="builder-instructions">Arrastra o toca las fórmulas necesarias al recuadro. Si una variable se calcula con otra fórmula, añade también esa fórmula. Después arrastra la unidad final. Si solo fallas la unidad, cuenta como regular, no como fallo.</p>
+            <div class="builder-slots">
+              <section class="drop-zone" id="formulaDropZone" aria-label="Fórmulas elegidas">
+                <h3>Fórmulas que usaría</h3>
+                <div id="selectedFormulaChips" class="selected-chips empty">Arrastra aquí las fórmulas</div>
+              </section>
+              <section class="drop-zone" id="unitDropZone" aria-label="Unidad elegida">
+                <h3>Unidad del resultado</h3>
+                <div id="selectedUnitChip" class="selected-chips empty">Arrastra aquí la unidad</div>
+              </section>
+            </div>
+            <h3 class="bank-title">Fórmulas</h3>
+            <div id="builderFormulaSections" class="builder-formula-sections"></div>
+            <h3 class="bank-title">Unidades</h3>
+            <div id="builderUnitBank" class="unit-bank"></div>
+            <div class="builder-actions">
+              <button id="builderSolveBtn" class="primary" type="button">Resolver</button>
+              <button id="builderGiveUpBtn" type="button">Rendirse</button>
+            </div>
+          </div>
+
         </div>
 
         <div id="feedback" class="feedback-card" hidden>
@@ -133,6 +148,7 @@
         <div class="card stats-card">
           <div class="stats-grid">
             <div class="stat"><strong id="okStat">0</strong><span>Aciertos</span></div>
+            <div class="stat"><strong id="regularStat">0</strong><span>Regulares</span></div>
             <div class="stat"><strong id="badStat">0</strong><span>Fallos</span></div>
             <div class="stat"><strong id="pctStat">0%</strong><span>Precisión</span></div>
           </div>

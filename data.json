@@ -252,6 +252,39 @@
       "vars": "q: carga (C), V₀ y Vf: potencial inicial/final (V)",
       "use": "calcular trabajo al mover una carga entre dos potenciales",
       "explanation": "El campo eléctrico hace trabajo cuando cambia la energía potencial. Muy típico: W = q·(V inicial - V final)."
+    },
+    {
+      "id": "angular_momentum",
+      "topic": "Gravitación",
+      "name": "Momento angular orbital",
+      "formula": "L = m · v · r",
+      "gives": "momento angular",
+      "units": "kg·m²/s",
+      "vars": "L: momento angular (kg·m²/s), m: masa (kg), v: velocidad (m/s), r: distancia o radio (m)",
+      "use": "relacionar velocidad y distancia en una órbita elíptica",
+      "explanation": "En una órbita elíptica sin rozamientos se conserva el momento angular. Si r baja, v sube."
+    },
+    {
+      "id": "mechanical_energy",
+      "topic": "Mecánica/Energía",
+      "name": "Energía mecánica",
+      "formula": "Em = Ec + Ep",
+      "gives": "energía mecánica",
+      "units": "julios (J)",
+      "vars": "Em: energía mecánica (J), Ec: energía cinética (J), Ep: energía potencial (J)",
+      "use": "calcular la energía total de un cuerpo",
+      "explanation": "La energía mecánica es la suma de energía cinética y potencial."
+    },
+    {
+      "id": "angular_momentum_B",
+      "topic": "Gravitación",
+      "name": "Momento angular orbital con B",
+      "formula": "L = m · r · v",
+      "gives": "momento angular",
+      "units": "kg·m²/s",
+      "vars": "L: momento angular (kg·m²/s), m: masa (kg), B: distancia/radio orbital en tus apuntes (m), v: velocidad (m/s)",
+      "use": "relacionar velocidad y distancia en una órbita elíptica cuando tus apuntes usan B como distancia/radio",
+      "explanation": "Es la misma idea que L = m·r·v: el momento angular se conserva. Si la distancia baja, la velocidad sube. La dejo con B porque así aparece en tus apuntes, aunque normalmente se escribe r o R."
     }
   ],
   "constants": [
@@ -289,6 +322,87 @@
       "symbol": "ε₀",
       "value": "8,85 · 10⁻¹² F/m",
       "explanation": "Se relaciona con K mediante K = 1/(4π ε₀)."
+    }
+  ],
+  "dependencies": {
+    "electric_potential_energy": [
+      "electric_potential"
+    ],
+    "coulomb_energy": [],
+    "electric_work": [
+      "electric_potential"
+    ],
+    "grav_work": [
+      "grav_potential"
+    ],
+    "mechanical_energy": [
+      "kinetic",
+      "grav_potential_energy"
+    ],
+    "kinetic": [],
+    "grav_potential_energy": [],
+    "electric_force": [
+      "electric_field"
+    ],
+    "mag_force_charge": [],
+    "joule": [],
+    "power_ui": [],
+    "faraday": [
+      "flux"
+    ],
+    "flux": [],
+    "orbital_speed": [],
+    "angular_momentum": [],
+    "angular_momentum_B": []
+  },
+  "builderTasks": [
+    {
+      "id": "t_ep_grav",
+      "target": "energía potencial gravitatoria",
+      "description": "Te pido calcular la energía potencial gravitatoria de un satélite o masa cerca de un planeta.",
+      "root": "grav_potential_energy"
+    },
+    {
+      "id": "t_ep_elec_v",
+      "target": "energía potencial eléctrica usando potencial",
+      "description": "Te pido calcular la energía potencial eléctrica de una carga situada en un punto cuyo potencial viene de otra carga.",
+      "root": "electric_potential_energy"
+    },
+    {
+      "id": "t_ep_elec_qq",
+      "target": "energía potencial eléctrica entre dos cargas",
+      "description": "Te pido calcular la energía potencial directamente entre dos cargas puntuales.",
+      "root": "coulomb_energy"
+    },
+    {
+      "id": "t_em_grav",
+      "target": "energía mecánica en gravitación",
+      "description": "Te pido la energía mecánica de un satélite en una órbita, necesitando energía cinética y potencial.",
+      "root": "mechanical_energy"
+    },
+    {
+      "id": "t_trabajo_elec",
+      "target": "trabajo eléctrico",
+      "description": "Te pido el trabajo del campo eléctrico al mover una carga entre dos puntos.",
+      "root": "electric_work"
+    },
+    {
+      "id": "t_fem_bobina",
+      "target": "fem inducida por variación de flujo",
+      "description": "Te pido la fem inducida en una bobina cuando cambia el flujo magnético.",
+      "root": "faraday"
+    },
+    {
+      "id": "t_fuerza_electrica",
+      "target": "fuerza eléctrica sobre una carga",
+      "description": "Te pido la fuerza eléctrica que sufre una carga dentro del campo creado por otra carga.",
+      "root": "electric_force"
+    },
+    {
+      "id": "t_momento_angular_B",
+      "target": "momento angular orbital",
+      "description": "Te pido calcular el momento angular de un satélite en una órbita elíptica usando la forma de tus apuntes.",
+      "root": "angular_momentum_B"
     }
   ]
 }

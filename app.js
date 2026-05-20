@@ -1,18 +1,27 @@
 let FORMULAS = [];
 let CONSTANTS = [];
+let DEPENDENCIES = {};
+let BUILDER_TASKS = [];
 
 const state = {
   practice: "quiz",
   mode: "infinite",
   topic: "all",
   hideMeta: false,
+  builderShowHelp: false,
   queue: [],
   index: 0,
   current: null,
   locked: false,
   flashFlipped: false,
+  builderCurrent: null,
+  builderRequired: [],
+  builderCycles: [],
+  builderSelectedFormulaIds: [],
+  builderSelectedUnit: "",
   ok: Number(localStorage.getItem("pauQuizOk") || 0),
-  bad: Number(localStorage.getItem("pauQuizBad") || 0)
+  bad: Number(localStorage.getItem("pauQuizBad") || 0),
+  regular: Number(localStorage.getItem("pauQuizRegular") || 0)
 };
 
 const $ = (id) => document.getElementById(id);
@@ -21,10 +30,7 @@ const els = {
   modeSelect: $("modeSelect"),
   topicSelect: $("topicSelect"),
   hideMetaToggle: $("hideMetaToggle"),
-  uiSizeSelect: $("uiSizeSelect"),
-  controlsPanel: $("controlsPanel"),
-  controlsBody: $("controlsBody"),
-  toggleControlsBtn: $("toggleControlsBtn"),
+  builderHelpToggle: $("builderHelpToggle"),
   startBtn: $("startBtn"),
   resetStatsBtn: $("resetStatsBtn"),
   sessionModeLabel: $("sessionModeLabel"),
@@ -36,6 +42,16 @@ const els = {
   counterLabel: $("counterLabel"),
   quizView: $("quizView"),
   flashcardView: $("flashcardView"),
+  builderView: $("builderView"),
+  builderTargetText: $("builderTargetText"),
+  builderFormulaSections: $("builderFormulaSections"),
+  builderUnitBank: $("builderUnitBank"),
+  formulaDropZone: $("formulaDropZone"),
+  unitDropZone: $("unitDropZone"),
+  selectedFormulaChips: $("selectedFormulaChips"),
+  selectedUnitChip: $("selectedUnitChip"),
+  builderSolveBtn: $("builderSolveBtn"),
+  builderGiveUpBtn: $("builderGiveUpBtn"),
   questionText: $("questionText"),
   formulaBox: $("formulaBox"),
   options: $("options"),
@@ -57,6 +73,7 @@ const els = {
   nextBtn: $("nextBtn"),
   hintBtn: $("hintBtn"),
   okStat: $("okStat"),
+  regularStat: $("regularStat"),
   badStat: $("badStat"),
   pctStat: $("pctStat"),
   progressLabel: $("progressLabel"),
@@ -98,6 +115,12 @@ function filteredConstants() {
   return state.topic === "all" ? CONSTANTS : CONSTANTS.filter((c) => c.topic === state.topic);
 }
 
+function filteredBuilderTasks() {
+  if (state.topic === "all") return BUILDER_TASKS;
+  const allowed = new Set(filteredFormulas().map((f) => f.id));
+  return BUILDER_TASKS.filter((task) => allowed.has(task.root));
+}
+
 function wrongOptions(correct, pool, count = 3) {
   const wrong = shuffle(unique(pool).filter((x) => x !== correct)).slice(0, count);
   return shuffle([correct, ...wrong]);
@@ -128,21 +151,6 @@ function variablePool() {
   ];
 }
 
-function maskLeftSide(formula) {
-  if (!formula || !formula.includes("=")) return formula;
-  const parts = formula.split("=");
-  return `? = ${parts.slice(1).join("=").trim()}`;
-}
-
-function rightSideOnly(formula) {
-  if (!formula || !formula.includes("=")) return formula;
-  return formula.split("=").slice(1).join("=").trim();
-}
-
-function cleanMeaning(text = "") {
-  return text.replace(/\s*\([^)]*\)/g, "").trim();
-}
-
 function buildQuestionFromFormula(f) {
   const types = ["formulaToName", "nameToFormula", "formulaToGives", "formulaToUnits", "useToFormula", "missingVariable", "varsMeaning"];
   const type = sample(types);
@@ -162,7 +170,7 @@ function buildQuestionFromFormula(f) {
       correct: f.name,
       options: wrongOptions(f.name, allNames),
       explanation: f.explanation,
-      extra: `Sirve para ${f.use}. Resultado: ${f.gives}. Unidad: ${f.units}.`,
+      extra: `Sirve para ${f.use}. Unidades del resultado: ${f.units}.`,
       frontTitle: f.formula,
       frontText: "Piensa el nombre y qué calcula antes de girarla.",
       backTitle: f.name,
@@ -191,16 +199,16 @@ function buildQuestionFromFormula(f) {
     return {
       ...base,
       typeLabel: "¿Qué calcula?",
-      question: "¿Qué magnitud calcula esta expresión?",
-      formula: maskLeftSide(f.formula),
+      question: "¿Qué magnitud te da esta fórmula?",
+      formula: f.formula,
       correct: f.gives,
       options: wrongOptions(f.gives, allGives),
       explanation: f.explanation,
-      extra: `La fórmula completa es: ${f.formula}. Unidad: ${f.units}.`,
-      frontTitle: maskLeftSide(f.formula),
-      frontText: "Di qué magnitud calcula sin mirar la letra de la izquierda.",
+      extra: `Se mide en ${f.units}.`,
+      frontTitle: f.formula,
+      frontText: "Di qué magnitud calcula.",
       backTitle: f.gives,
-      backText: `Fórmula completa: ${f.formula}. Unidad: ${f.units}.`
+      backText: `Unidad: ${f.units}. ${f.explanation}`
     };
   }
 
@@ -208,16 +216,16 @@ function buildQuestionFromFormula(f) {
     return {
       ...base,
       typeLabel: "Unidades",
-      question: "¿En qué unidad se mide el resultado de esta expresión?",
-      formula: maskLeftSide(f.formula),
+      question: `¿En qué unidad se mide ${f.gives}?`,
+      formula: f.formula,
       correct: f.units,
       options: wrongOptions(f.units, allUnits),
-      explanation: `El resultado es ${f.gives}, por eso se mide en ${f.units}.`,
-      extra: `Fórmula completa: ${f.formula}.`,
-      frontTitle: maskLeftSide(f.formula),
-      frontText: "Piensa la unidad del resultado, no la letra.",
+      explanation: `Esta fórmula calcula ${f.gives}. Por eso el resultado se expresa en ${f.units}.`,
+      extra: `Variables: ${f.vars}.`,
+      frontTitle: f.gives,
+      frontText: "Piensa en la unidad del resultado.",
       backTitle: f.units,
-      backText: `Resultado: ${f.gives}. Fórmula completa: ${f.formula}.`
+      backText: `${f.formula}. Variables: ${f.vars}.`
     };
   }
 
@@ -239,47 +247,48 @@ function buildQuestionFromFormula(f) {
   }
 
   if (type === "missingVariable") {
-    const vars = parseVars(f.vars);
-    const pickedVar = vars.length ? sample(vars) : { symbol: "r", meaning: "distancia" };
-    const missingFormula = f.formula.replace(pickedVar.symbol, "□");
-    const symbolPool = unique([...vars.map((v) => v.symbol), ...variablePool().map(([s]) => s)]);
+    const reps = variablePool();
+    const present = reps.filter(([symbol]) => f.formula.includes(symbol));
+    const picked = present.length ? sample(present) : ["r", "distancia"];
+    const missingFormula = f.formula.replace(picked[0], "□");
     return {
       ...base,
-      typeLabel: "Completar fórmula",
+      typeLabel: "¿Qué falta?",
       question: "¿Qué símbolo falta en esta fórmula?",
       formula: missingFormula,
-      correct: pickedVar.symbol,
-      options: wrongOptions(pickedVar.symbol, symbolPool),
-      explanation: `Faltaba ${pickedVar.symbol}. En esta fórmula representa ${pickedVar.meaning}.`,
-      extra: `Fórmula completa: ${f.formula}.`,
+      correct: `${picked[0]} = ${picked[1]}`,
+      options: wrongOptions(`${picked[0]} = ${picked[1]}`, reps.map(([s, n]) => `${s} = ${n}`)),
+      explanation: `En ${f.name}, ${picked[0]} representa ${picked[1]}.`,
+      extra: `Fórmula completa: ${f.formula}. ${f.vars}.`,
       frontTitle: missingFormula,
       frontText: "Adivina qué letra falta.",
-      backTitle: pickedVar.symbol,
-      backText: `Significa: ${pickedVar.meaning}. Fórmula completa: ${f.formula}.`
+      backTitle: `${picked[0]} = ${picked[1]}`,
+      backText: `Fórmula completa: ${f.formula}.`
     };
   }
 
   const vars = parseVars(f.vars);
   const chosen = sample(vars.length ? vars : [{ symbol: "?", meaning: f.vars }]);
-  const meaningPool = unique(FORMULAS.flatMap((x) => parseVars(x.vars).map((v) => cleanMeaning(v.meaning))));
+  const correctText = `${chosen.symbol}: ${chosen.meaning}`;
+  const allVarTexts = FORMULAS.flatMap((x) => parseVars(x.vars).map((v) => `${v.symbol}: ${v.meaning}`));
   return {
     ...base,
     typeLabel: "Variables",
-    question: `En esta fórmula, ¿qué representa ${chosen.symbol}?`,
-    formula: rightSideOnly(f.formula),
-    correct: cleanMeaning(chosen.meaning),
-    options: wrongOptions(cleanMeaning(chosen.meaning), meaningPool),
-    explanation: `${chosen.symbol} representa ${chosen.meaning}.`,
-    extra: `Fórmula completa: ${f.formula}. Resultado: ${f.gives}, en ${f.units}.`,
-    frontTitle: `¿Qué significa ${chosen.symbol}?`,
-    frontText: rightSideOnly(f.formula),
-    backTitle: cleanMeaning(chosen.meaning),
-    backText: `Fórmula completa: ${f.formula}.`
+    question: `En la fórmula ${f.formula}, ¿qué significa ${chosen.symbol}?`,
+    formula: f.formula,
+    correct: correctText,
+    options: wrongOptions(correctText, allVarTexts),
+    explanation: "Esto sirve para no usar fórmulas de memoria sin saber qué representa cada letra.",
+    extra: `Fórmula: ${f.name}. Resultado: ${f.gives}, en ${f.units}.`,
+    frontTitle: `${f.formula}`,
+    frontText: `¿Qué significa ${chosen.symbol}?`,
+    backTitle: correctText,
+    backText: `${f.name}. Resultado: ${f.gives}, en ${f.units}.`
   };
 }
 
 function buildQuestionFromConstant(c) {
-  const types = ["constantValue", "constantSymbol", "constantMeaning"];
+  const types = ["constantValue", "constantSymbol", "constantUse"];
   const type = sample(types);
   const constants = filteredConstants().length ? filteredConstants() : CONSTANTS;
   const base = { kind: "constant", source: c, topic: c.topic, variables: [] };
@@ -288,16 +297,16 @@ function buildQuestionFromConstant(c) {
     return {
       ...base,
       typeLabel: "Constante",
-      question: `¿Cuál es el valor aproximado de ${c.symbol}?`,
-      formula: "",
+      question: `¿Cuál es el valor de ${c.symbol}?`,
+      formula: c.name,
       correct: c.value,
-      options: wrongOptions(c.value, CONSTANTS.map((x) => x.value)),
-      explanation: `${c.symbol} es ${c.name}. ${c.explanation}`,
+      options: wrongOptions(c.value, constants.map((x) => x.value)),
+      explanation: c.explanation,
       extra: `${c.symbol} = ${c.value}.`,
       frontTitle: c.symbol,
-      frontText: "Recuerda su valor aproximado.",
+      frontText: c.name,
       backTitle: c.value,
-      backText: `${c.name}. ${c.explanation}`
+      backText: c.explanation
     };
   }
 
@@ -309,7 +318,7 @@ function buildQuestionFromConstant(c) {
       formula: "",
       correct: c.symbol,
       options: wrongOptions(c.symbol, constants.map((x) => x.symbol)),
-      explanation: `${c.name} se representa como ${c.symbol}.`,
+      explanation: c.explanation,
       extra: `Valor: ${c.value}.`,
       frontTitle: c.name,
       frontText: "Recuerda el símbolo.",
@@ -320,17 +329,17 @@ function buildQuestionFromConstant(c) {
 
   return {
     ...base,
-    typeLabel: "Qué es",
-    question: `¿Qué representa ${c.symbol}?`,
-    formula: "",
-    correct: c.name,
-    options: wrongOptions(c.name, CONSTANTS.map((x) => x.name)),
-    explanation: `${c.symbol} representa ${c.name}.`,
-    extra: `Valor: ${c.value}. ${c.explanation}`,
-    frontTitle: c.symbol,
-    frontText: "Di qué constante o carga representa.",
+    typeLabel: "Uso de constante",
+    question: `¿Dónde suele aparecer ${c.symbol}?`,
+    formula: `${c.symbol} = ${c.value}`,
+    correct: c.explanation,
+    options: wrongOptions(c.explanation, CONSTANTS.map((x) => x.explanation)),
+    explanation: c.explanation,
+    extra: `${c.name}: ${c.value}.`,
+    frontTitle: `${c.symbol} = ${c.value}`,
+    frontText: "Piensa cuándo se usa.",
     backTitle: c.name,
-    backText: `Valor: ${c.value}. ${c.explanation}`
+    backText: c.explanation
   };
 }
 
@@ -383,6 +392,10 @@ function resetQuestionUi() {
 
 function nextQuestion() {
   resetQuestionUi();
+  if (state.practice === "builder") {
+    nextBuilderTask();
+    return;
+  }
   const item = getNextItem();
 
   if (item === null) {
@@ -424,6 +437,7 @@ function renderQuestion() {
   const q = state.current;
   els.quizView.hidden = state.practice !== "quiz";
   els.flashcardView.hidden = state.practice !== "flashcards";
+  els.builderView.hidden = state.practice !== "builder";
 
   renderMeta();
   els.questionText.textContent = q.question;
@@ -565,19 +579,290 @@ function markFlashcard(known) {
   updateStats();
 }
 
+
+function formulaById(id) {
+  return FORMULAS.find((formula) => formula.id === id) || null;
+}
+
+function formulaDisplay(formula) {
+  if (!formula || !formula.formula) return "";
+  const parts = formula.formula.split("=");
+  return parts.length > 1 ? parts.slice(1).join("=").trim() : formula.formula.trim();
+}
+
+function unitText(formula) {
+  return formula?.units || "";
+}
+
+function requiredFormulaIds(rootId) {
+  const required = [];
+  const cycles = [];
+  const visiting = new Set();
+  const visited = new Set();
+
+  function walk(id, path = []) {
+    if (!id) return;
+    if (visiting.has(id)) {
+      cycles.push([...path, id]);
+      return;
+    }
+    if (visited.has(id)) return;
+
+    visiting.add(id);
+    visited.add(id);
+    required.push(id);
+
+    const deps = DEPENDENCIES[id] || [];
+    deps.forEach((dep) => walk(dep, [...path, id]));
+    visiting.delete(id);
+  }
+
+  walk(rootId);
+  return { required, cycles };
+}
+
+function nextBuilderTask() {
+  state.practice = "builder";
+  els.quizView.hidden = true;
+  els.flashcardView.hidden = true;
+  els.builderView.hidden = false;
+  els.feedback.hidden = true;
+  els.nextBtn.disabled = true;
+  els.sessionStatus.textContent = "Elige las fórmulas necesarias";
+  els.counterLabel.textContent = "fórmulas";
+
+  const tasks = filteredBuilderTasks();
+  if (!tasks.length) {
+    els.builderTargetText.textContent = "No hay retos para este tema.";
+    els.builderFormulaSections.innerHTML = "";
+    return;
+  }
+
+  const task = state.mode === "review"
+    ? tasks[state.index++ % tasks.length]
+    : sample(tasks);
+
+  state.builderCurrent = task;
+  state.builderSelectedFormulaIds = [];
+  state.builderSelectedUnit = "";
+  const solved = requiredFormulaIds(task.root);
+  state.builderRequired = solved.required;
+  state.builderCycles = solved.cycles;
+  state.current = {
+    topic: formulaById(task.root)?.topic || "Física",
+    typeLabel: "Fórmulas necesarias"
+  };
+
+  renderMeta();
+  els.builderTargetText.textContent = task.description || `Te pido ${task.target}.`;
+  renderBuilderFormulaSections();
+  renderBuilderUnitBank();
+  renderBuilderSelections();
+  updateStats();
+}
+
+function renderBuilderFormulaSections() {
+  els.builderFormulaSections.innerHTML = "";
+  const formulas = filteredFormulas();
+  const topics = unique(formulas.map((f) => f.topic));
+
+  topics.forEach((topic) => {
+    const details = document.createElement("details");
+    details.className = "builder-topic";
+    details.open = false;
+    details.innerHTML = `<summary>${topic}</summary><div class="builder-topic-body"></div>`;
+    const body = details.querySelector(".builder-topic-body");
+
+    formulas.filter((f) => f.topic === topic).forEach((f) => {
+      const row = document.createElement("button");
+      row.className = "builder-formula-row builder-draggable";
+      row.type = "button";
+      row.draggable = true;
+      row.dataset.formulaId = f.id;
+      row.innerHTML = state.builderShowHelp
+        ? `
+          <span>
+            <b>${f.name}</b>
+            <code>${formulaDisplay(f)}</code>
+            <small>${f.use}</small>
+          </span>
+        `
+        : `
+          <span>
+            <code>${formulaDisplay(f)}</code>
+          </span>
+        `;
+      row.addEventListener("click", () => addBuilderFormula(f.id));
+      row.addEventListener("dragstart", (event) => {
+        event.dataTransfer.setData("text/plain", `formula:${f.id}`);
+      });
+      body.appendChild(row);
+    });
+
+    els.builderFormulaSections.appendChild(details);
+  });
+}
+
+function renderBuilderUnitBank() {
+  els.builderUnitBank.innerHTML = "";
+  const units = unique(FORMULAS.map((f) => f.units));
+  units.forEach((unit) => {
+    const btn = document.createElement("button");
+    btn.className = "unit-chip builder-draggable";
+    btn.type = "button";
+    btn.draggable = true;
+    btn.dataset.unit = unit;
+    btn.textContent = unit;
+    btn.addEventListener("click", () => setBuilderUnit(unit));
+    btn.addEventListener("dragstart", (event) => {
+      event.dataTransfer.setData("text/plain", `unit:${unit}`);
+    });
+    els.builderUnitBank.appendChild(btn);
+  });
+}
+
+function addBuilderFormula(id) {
+  if (!id || state.builderSelectedFormulaIds.includes(id)) return;
+  state.builderSelectedFormulaIds.push(id);
+  renderBuilderSelections();
+}
+
+function removeBuilderFormula(id) {
+  state.builderSelectedFormulaIds = state.builderSelectedFormulaIds.filter((formulaId) => formulaId !== id);
+  renderBuilderSelections();
+}
+
+function setBuilderUnit(unit) {
+  state.builderSelectedUnit = unit || "";
+  renderBuilderSelections();
+}
+
+function renderBuilderSelections() {
+  els.selectedFormulaChips.innerHTML = "";
+  if (!state.builderSelectedFormulaIds.length) {
+    els.selectedFormulaChips.classList.add("empty");
+    els.selectedFormulaChips.textContent = "Arrastra aquí las fórmulas";
+  } else {
+    els.selectedFormulaChips.classList.remove("empty");
+    state.builderSelectedFormulaIds.forEach((id) => {
+      const f = formulaById(id);
+      if (!f) return;
+      const chip = document.createElement("button");
+      chip.className = "selected-chip";
+      chip.type = "button";
+      chip.title = "Tocar para quitar";
+      chip.innerHTML = state.builderShowHelp
+        ? `<b>${f.name}</b><code>${formulaDisplay(f)}</code><span>×</span>`
+        : `<code>${formulaDisplay(f)}</code><span>×</span>`;
+      chip.addEventListener("click", () => removeBuilderFormula(id));
+      els.selectedFormulaChips.appendChild(chip);
+    });
+  }
+
+  els.selectedUnitChip.innerHTML = "";
+  if (!state.builderSelectedUnit) {
+    els.selectedUnitChip.classList.add("empty");
+    els.selectedUnitChip.textContent = "Arrastra aquí la unidad";
+  } else {
+    els.selectedUnitChip.classList.remove("empty");
+    const chip = document.createElement("button");
+    chip.className = "selected-chip unit-selected";
+    chip.type = "button";
+    chip.title = "Tocar para quitar";
+    chip.innerHTML = `<b>${state.builderSelectedUnit}</b><span>×</span>`;
+    chip.addEventListener("click", () => setBuilderUnit(""));
+    els.selectedUnitChip.appendChild(chip);
+  }
+}
+
+function setupDropZone(zone, type) {
+  zone.addEventListener("dragover", (event) => {
+    event.preventDefault();
+    zone.classList.add("drag-over");
+  });
+  zone.addEventListener("dragleave", () => zone.classList.remove("drag-over"));
+  zone.addEventListener("drop", (event) => {
+    event.preventDefault();
+    zone.classList.remove("drag-over");
+    const raw = event.dataTransfer.getData("text/plain");
+    const [kind, ...rest] = raw.split(":");
+    const value = rest.join(":");
+    if (type === "formula" && kind === "formula") addBuilderFormula(value);
+    if (type === "unit" && kind === "unit") setBuilderUnit(value);
+  });
+}
+
+function getSelectedBuilderIds() {
+  return [...state.builderSelectedFormulaIds];
+}
+
+function explainBuilderSolution(giveUp = false) {
+  if (!state.builderCurrent) return;
+
+  const selected = new Set(getSelectedBuilderIds());
+  const required = new Set(state.builderRequired);
+  const rootFormula = formulaById(state.builderCurrent.root);
+  const expectedUnit = unitText(rootFormula);
+  const unitOk = state.builderSelectedUnit === expectedUnit;
+  const missing = [...required].filter((id) => !selected.has(id));
+  const extra = [...selected].filter((id) => !required.has(id));
+  const formulasOk = !missing.length && !extra.length;
+  const ok = formulasOk && unitOk;
+  const regular = formulasOk && !unitOk;
+
+  if (!giveUp) {
+    if (ok) state.ok += 1;
+    else if (regular) state.regular += 1;
+    else state.bad += 1;
+  }
+  saveStats();
+
+  const requiredNames = [...required].map((id) => formulaById(id)).filter(Boolean);
+  const missingNames = missing.map((id) => formulaById(id)).filter(Boolean);
+  const extraNames = extra.map((id) => formulaById(id)).filter(Boolean);
+
+  const list = (items) => items.length
+    ? `<ul class="builder-result-list">${items.map((f) => `<li><b>${f.name}</b>: <code>${formulaDisplay(f)}</code></li>`).join("")}</ul>`
+    : "<p>No hay.</p>";
+
+  const cycleText = state.builderCycles.length
+    ? `<p><b>Nota:</b> he detectado dependencia circular y la he cortado para evitar bucle infinito.</p>`
+    : "";
+
+  els.feedback.hidden = false;
+  els.feedback.className = `feedback-card ${ok && !giveUp ? "ok" : (regular && !giveUp ? "regular" : "hint")}`;
+  els.feedbackTitle.textContent = giveUp ? "Solución" : (ok ? "Bien ✅" : (regular ? "Regular: fórmulas bien, unidad mal" : "Revisa la cadena de fórmulas"));
+  els.feedbackText.innerHTML = `Para <b>${state.builderCurrent.target}</b> deberías usar:${list(requiredNames)}<p><b>Unidad final:</b> ${expectedUnit}</p>`;
+  els.extraText.innerHTML = `${missing.length ? `<p class="builder-bad">Te faltan:</p>${list(missingNames)}` : ""}${extra.length ? `<p class="builder-bad">Has marcado fórmulas que no hacían falta:</p>${list(extraNames)}` : ""}${!unitOk ? `<p class="builder-bad">Unidad incorrecta o vacía. La unidad final correcta es: <b>${expectedUnit}</b>.</p>` : ""}${cycleText}`;
+
+  const unitMsg = unitOk ? `Unidad correcta: ${expectedUnit}.` : `La unidad final correcta era ${expectedUnit}.`;
+  openSolution(
+    giveUp ? "Solución" : (ok ? "Bien ✅" : (regular ? "Regular: solo falla la unidad" : "Revisa la solución")),
+    `Para ${state.builderCurrent.target}, las fórmulas necesarias son: ${requiredNames.map((f) => f.name).join(", ")}.`,
+    `${missing.length ? `Te faltaban: ${missingNames.map((f) => f.name).join(", ")}. ` : ""}${extra.length ? `Sobraban: ${extraNames.map((f) => f.name).join(", ")}. ` : ""}${unitMsg}`,
+    null
+  );
+
+  renderMeta();
+  els.nextBtn.disabled = false;
+  updateStats();
+}
+
 function saveStats() {
   localStorage.setItem("pauQuizOk", state.ok);
   localStorage.setItem("pauQuizBad", state.bad);
+  localStorage.setItem("pauQuizRegular", state.regular);
 }
 
 function updateStats() {
-  const total = state.ok + state.bad;
+  const total = state.ok + state.bad + state.regular;
   const pct = total ? Math.round((state.ok / total) * 100) : 0;
   els.okStat.textContent = state.ok;
+  if (els.regularStat) els.regularStat.textContent = state.regular;
   els.badStat.textContent = state.bad;
   els.pctStat.textContent = `${pct}%`;
 
-  els.sessionModeLabel.textContent = state.mode === "review" ? "Recorrer todo" : "Modo infinito";
+  els.sessionModeLabel.textContent = state.practice === "builder" ? "Modo fórmulas necesarias" : (state.mode === "review" ? "Recorrer todo" : "Modo infinito");
 
   if (state.mode === "review") {
     const totalQ = state.queue.length;
@@ -618,30 +903,12 @@ function renderFormulaList() {
   });
 }
 
-function applyUiSize(size) {
-  const safe = ["small", "medium", "large"].includes(size) ? size : "medium";
-  document.body.classList.remove("size-small", "size-medium", "size-large");
-  document.body.classList.add(`size-${safe}`);
-  if (els.uiSizeSelect) els.uiSizeSelect.value = safe;
-  localStorage.setItem("pauUiSize", safe);
-}
-
-function setControlsCollapsed(collapsed) {
-  els.controlsPanel.classList.toggle("controls-collapsed", collapsed);
-  els.toggleControlsBtn.textContent = collapsed ? "Mostrar opciones" : "Ocultar opciones";
-}
-
-function toggleControls() {
-  setControlsCollapsed(!els.controlsPanel.classList.contains("controls-collapsed"));
-}
-
 function start() {
   state.practice = els.practiceSelect.value;
   state.mode = els.modeSelect.value;
   state.topic = els.topicSelect.value;
   state.hideMeta = els.hideMetaToggle.checked;
-  applyUiSize(els.uiSizeSelect.value);
-  setControlsCollapsed(true);
+  state.builderShowHelp = els.builderHelpToggle.checked;
 
   if (state.mode === "review") buildQueue();
   else {
@@ -656,6 +923,7 @@ function updatePracticeView() {
   state.practice = els.practiceSelect.value;
   els.quizView.hidden = state.practice !== "quiz";
   els.flashcardView.hidden = state.practice !== "flashcards";
+  els.builderView.hidden = state.practice !== "builder";
   if (state.current) renderQuestion();
 }
 
@@ -667,6 +935,8 @@ async function loadQuizData() {
 
     FORMULAS = data.formulas || [];
     CONSTANTS = data.constants || [];
+    DEPENDENCIES = data.dependencies || {};
+    BUILDER_TASKS = data.builderTasks || [];
 
     renderFormulaList();
     updateStats();
@@ -691,20 +961,30 @@ els.flipBtn.addEventListener("click", flipFlashcard);
 els.flashcard.addEventListener("click", flipFlashcard);
 els.knowBtn.addEventListener("click", () => markFlashcard(true));
 els.missBtn.addEventListener("click", () => markFlashcard(false));
+els.builderSolveBtn.addEventListener("click", () => explainBuilderSolution(false));
+els.builderGiveUpBtn.addEventListener("click", () => explainBuilderSolution(true));
 els.practiceSelect.addEventListener("change", updatePracticeView);
 els.modeSelect.addEventListener("change", start);
 els.topicSelect.addEventListener("change", start);
-els.uiSizeSelect.addEventListener("change", () => applyUiSize(els.uiSizeSelect.value));
-els.toggleControlsBtn.addEventListener("click", toggleControls);
 els.hideMetaToggle.addEventListener("change", () => {
   state.hideMeta = els.hideMetaToggle.checked;
   renderMeta();
 });
+
+els.builderHelpToggle.addEventListener("change", () => {
+  state.builderShowHelp = els.builderHelpToggle.checked;
+  if (state.practice === "builder") {
+    renderBuilderFormulaSections();
+    renderBuilderSelections();
+  }
+});
 els.resetStatsBtn.addEventListener("click", () => {
   state.ok = 0;
   state.bad = 0;
+  state.regular = 0;
   localStorage.removeItem("pauQuizOk");
   localStorage.removeItem("pauQuizBad");
+  localStorage.removeItem("pauQuizRegular");
   updateStats();
 });
 
@@ -721,7 +1001,8 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && !els.solutionOverlay.hidden) closeSolution();
 });
 
-applyUiSize(localStorage.getItem("pauUiSize") || "medium");
-setControlsCollapsed(false);
+setupDropZone(els.formulaDropZone, "formula");
+setupDropZone(els.unitDropZone, "unit");
+
 updateStats();
 loadQuizData();
