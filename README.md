@@ -1,28 +1,37 @@
 # PAU Física Quiz
 
-Versión separada en HTML, CSS, JS y JSON.
+Proyecto separado en:
 
-## Cómo abrirlo
+- index.html
+- styles.css
+- app.js
+- data.json
 
-Como los datos están en `data.json`, abre la carpeta con un servidor local.
+## Abrir
 
-Opción rápida con Python:
+Como usa `data.json`, abre la carpeta con Live Server de VS Code o con:
 
 ```bash
 python -m http.server 8000
 ```
 
-Después entra en:
+Luego entra en:
 
 ```text
 http://localhost:8000
 ```
 
-También vale Live Server de VS Code.
+## Cambios importantes
 
-## Cambios de esta versión
-
-- Mejor adaptación a móvil.
-- Botones inferiores fijos para no tener que bajar tanto.
-- Al responder aparece un popup con la solución.
-- En el popup se ve la explicación y qué significa cada letra de la fórmula.
+- Recupera la versión completa con quiz, flashcards, modo infinito y repaso completo.
+- Añade tamaño de interfaz: pequeño, medio y grande.
+- Guarda el tamaño elegido en localStorage.
+- Al empezar, el menú de opciones se pliega automáticamente.
+- Se puede volver a desplegar con “Mostrar opciones”.
+- En móvil el modo pequeño reduce tamaños y prioriza que la pregunta/respuestas entren mejor en pantalla.
+- El popup de solución sigue apareciendo al responder.
+- Las preguntas se han revisado para evitar spoilers:
+  - Las preguntas de unidades no muestran la variable resultado.
+  - Las preguntas de variables no ponen respuestas con símbolo + significado, solo significados.
+  - Las constantes preguntan valor, símbolo o qué representan.
+  - Se elimina la pregunta absurda de “dónde aparece qₑ”.

@@ -18,41 +18,57 @@
       </div>
     </header>
 
-    <section class="controls card">
-      <label>
-        Tipo de práctica
-        <select id="practiceSelect">
-          <option value="quiz">Quiz con opciones</option>
-          <option value="flashcards">Flashcards</option>
-        </select>
-      </label>
+    <section class="controls card" id="controlsPanel">
+      <div class="controls-head">
+        <strong>Opciones</strong>
+        <button id="toggleControlsBtn" type="button">Ocultar opciones</button>
+      </div>
 
-      <label>
-        Recorrido
-        <select id="modeSelect">
-          <option value="infinite">Modo infinito</option>
-          <option value="review">Recorrer todo</option>
-        </select>
-      </label>
+      <div class="controls-body" id="controlsBody">
+        <label>
+          Tipo de práctica
+          <select id="practiceSelect">
+            <option value="quiz">Quiz con opciones</option>
+            <option value="flashcards">Flashcards</option>
+          </select>
+        </label>
 
-      <label>
-        Tema
-        <select id="topicSelect">
-          <option value="all">Todos los temas</option>
-          <option value="Gravitación">Gravitación</option>
-          <option value="Electricidad">Electricidad</option>
-          <option value="Electromagnetismo">Electromagnetismo</option>
-          <option value="Mecánica/Energía">Mecánica/Energía</option>
-        </select>
-      </label>
+        <label>
+          Recorrido
+          <select id="modeSelect">
+            <option value="infinite">Modo infinito</option>
+            <option value="review">Recorrer todo</option>
+          </select>
+        </label>
 
-      <label class="check-row" title="Así no sabes si la pregunta es de gravitación, electricidad, etc.">
-        <input id="hideMetaToggle" type="checkbox" />
-        Ocultar tema y tipo
-      </label>
+        <label>
+          Tema
+          <select id="topicSelect">
+            <option value="all">Todos los temas</option>
+            <option value="Gravitación">Gravitación</option>
+            <option value="Electricidad">Electricidad</option>
+            <option value="Electromagnetismo">Electromagnetismo</option>
+            <option value="Mecánica/Energía">Mecánica/Energía</option>
+          </select>
+        </label>
 
-      <button id="startBtn" class="primary">Empezar</button>
-      <button id="resetStatsBtn">Borrar estadísticas</button>
+        <label>
+          Tamaño interfaz
+          <select id="uiSizeSelect">
+            <option value="small">Pequeño / móvil</option>
+            <option value="medium">Medio</option>
+            <option value="large">Grande</option>
+          </select>
+        </label>
+
+        <label class="check-row" title="Así no sabes si la pregunta es de gravitación, electricidad, etc.">
+          <input id="hideMetaToggle" type="checkbox" />
+          Ocultar tema y tipo
+        </label>
+
+        <button id="startBtn" class="primary">Empezar</button>
+        <button id="resetStatsBtn">Borrar estadísticas</button>
+      </div>
     </section>
 
     <section class="layout">

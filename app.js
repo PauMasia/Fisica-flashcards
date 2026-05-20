@@ -21,6 +21,10 @@ const els = {
   modeSelect: $("modeSelect"),
   topicSelect: $("topicSelect"),
   hideMetaToggle: $("hideMetaToggle"),
+  uiSizeSelect: $("uiSizeSelect"),
+  controlsPanel: $("controlsPanel"),
+  controlsBody: $("controlsBody"),
+  toggleControlsBtn: $("toggleControlsBtn"),
   startBtn: $("startBtn"),
   resetStatsBtn: $("resetStatsBtn"),
   sessionModeLabel: $("sessionModeLabel"),
@@ -124,6 +128,21 @@ function variablePool() {
   ];
 }
 
+function maskLeftSide(formula) {
+  if (!formula || !formula.includes("=")) return formula;
+  const parts = formula.split("=");
+  return `? = ${parts.slice(1).join("=").trim()}`;
+}
+
+function rightSideOnly(formula) {
+  if (!formula || !formula.includes("=")) return formula;
+  return formula.split("=").slice(1).join("=").trim();
+}
+
+function cleanMeaning(text = "") {
+  return text.replace(/\s*\([^)]*\)/g, "").trim();
+}
+
 function buildQuestionFromFormula(f) {
   const types = ["formulaToName", "nameToFormula", "formulaToGives", "formulaToUnits", "useToFormula", "missingVariable", "varsMeaning"];
   const type = sample(types);
@@ -143,7 +162,7 @@ function buildQuestionFromFormula(f) {
       correct: f.name,
       options: wrongOptions(f.name, allNames),
       explanation: f.explanation,
-      extra: `Sirve para ${f.use}. Unidades del resultado: ${f.units}.`,
+      extra: `Sirve para ${f.use}. Resultado: ${f.gives}. Unidad: ${f.units}.`,
       frontTitle: f.formula,
       frontText: "Piensa el nombre y qué calcula antes de girarla.",
       backTitle: f.name,
@@ -172,16 +191,16 @@ function buildQuestionFromFormula(f) {
     return {
       ...base,
       typeLabel: "¿Qué calcula?",
-      question: "¿Qué magnitud te da esta fórmula?",
-      formula: f.formula,
+      question: "¿Qué magnitud calcula esta expresión?",
+      formula: maskLeftSide(f.formula),
       correct: f.gives,
       options: wrongOptions(f.gives, allGives),
       explanation: f.explanation,
-      extra: `Se mide en ${f.units}.`,
-      frontTitle: f.formula,
-      frontText: "Di qué magnitud calcula.",
+      extra: `La fórmula completa es: ${f.formula}. Unidad: ${f.units}.`,
+      frontTitle: maskLeftSide(f.formula),
+      frontText: "Di qué magnitud calcula sin mirar la letra de la izquierda.",
       backTitle: f.gives,
-      backText: `Unidad: ${f.units}. ${f.explanation}`
+      backText: `Fórmula completa: ${f.formula}. Unidad: ${f.units}.`
     };
   }
 
@@ -189,16 +208,16 @@ function buildQuestionFromFormula(f) {
     return {
       ...base,
       typeLabel: "Unidades",
-      question: `¿En qué unidad se mide ${f.gives}?`,
-      formula: f.formula,
+      question: "¿En qué unidad se mide el resultado de esta expresión?",
+      formula: maskLeftSide(f.formula),
       correct: f.units,
       options: wrongOptions(f.units, allUnits),
-      explanation: `Esta fórmula calcula ${f.gives}. Por eso el resultado se expresa en ${f.units}.`,
-      extra: `Variables: ${f.vars}.`,
-      frontTitle: f.gives,
-      frontText: "Piensa en la unidad del resultado.",
+      explanation: `El resultado es ${f.gives}, por eso se mide en ${f.units}.`,
+      extra: `Fórmula completa: ${f.formula}.`,
+      frontTitle: maskLeftSide(f.formula),
+      frontText: "Piensa la unidad del resultado, no la letra.",
       backTitle: f.units,
-      backText: `${f.formula}. Variables: ${f.vars}.`
+      backText: `Resultado: ${f.gives}. Fórmula completa: ${f.formula}.`
     };
   }
 
@@ -220,48 +239,47 @@ function buildQuestionFromFormula(f) {
   }
 
   if (type === "missingVariable") {
-    const reps = variablePool();
-    const present = reps.filter(([symbol]) => f.formula.includes(symbol));
-    const picked = present.length ? sample(present) : ["r", "distancia"];
-    const missingFormula = f.formula.replace(picked[0], "□");
+    const vars = parseVars(f.vars);
+    const pickedVar = vars.length ? sample(vars) : { symbol: "r", meaning: "distancia" };
+    const missingFormula = f.formula.replace(pickedVar.symbol, "□");
+    const symbolPool = unique([...vars.map((v) => v.symbol), ...variablePool().map(([s]) => s)]);
     return {
       ...base,
-      typeLabel: "¿Qué falta?",
+      typeLabel: "Completar fórmula",
       question: "¿Qué símbolo falta en esta fórmula?",
       formula: missingFormula,
-      correct: `${picked[0]} = ${picked[1]}`,
-      options: wrongOptions(`${picked[0]} = ${picked[1]}`, reps.map(([s, n]) => `${s} = ${n}`)),
-      explanation: `En ${f.name}, ${picked[0]} representa ${picked[1]}.`,
-      extra: `Fórmula completa: ${f.formula}. ${f.vars}.`,
+      correct: pickedVar.symbol,
+      options: wrongOptions(pickedVar.symbol, symbolPool),
+      explanation: `Faltaba ${pickedVar.symbol}. En esta fórmula representa ${pickedVar.meaning}.`,
+      extra: `Fórmula completa: ${f.formula}.`,
       frontTitle: missingFormula,
       frontText: "Adivina qué letra falta.",
-      backTitle: `${picked[0]} = ${picked[1]}`,
-      backText: `Fórmula completa: ${f.formula}.`
+      backTitle: pickedVar.symbol,
+      backText: `Significa: ${pickedVar.meaning}. Fórmula completa: ${f.formula}.`
     };
   }
 
   const vars = parseVars(f.vars);
   const chosen = sample(vars.length ? vars : [{ symbol: "?", meaning: f.vars }]);
-  const correctText = `${chosen.symbol}: ${chosen.meaning}`;
-  const allVarTexts = FORMULAS.flatMap((x) => parseVars(x.vars).map((v) => `${v.symbol}: ${v.meaning}`));
+  const meaningPool = unique(FORMULAS.flatMap((x) => parseVars(x.vars).map((v) => cleanMeaning(v.meaning))));
   return {
     ...base,
     typeLabel: "Variables",
-    question: `En la fórmula ${f.formula}, ¿qué significa ${chosen.symbol}?`,
-    formula: f.formula,
-    correct: correctText,
-    options: wrongOptions(correctText, allVarTexts),
-    explanation: "Esto sirve para no usar fórmulas de memoria sin saber qué representa cada letra.",
-    extra: `Fórmula: ${f.name}. Resultado: ${f.gives}, en ${f.units}.`,
-    frontTitle: `${f.formula}`,
-    frontText: `¿Qué significa ${chosen.symbol}?`,
-    backTitle: correctText,
-    backText: `${f.name}. Resultado: ${f.gives}, en ${f.units}.`
+    question: `En esta fórmula, ¿qué representa ${chosen.symbol}?`,
+    formula: rightSideOnly(f.formula),
+    correct: cleanMeaning(chosen.meaning),
+    options: wrongOptions(cleanMeaning(chosen.meaning), meaningPool),
+    explanation: `${chosen.symbol} representa ${chosen.meaning}.`,
+    extra: `Fórmula completa: ${f.formula}. Resultado: ${f.gives}, en ${f.units}.`,
+    frontTitle: `¿Qué significa ${chosen.symbol}?`,
+    frontText: rightSideOnly(f.formula),
+    backTitle: cleanMeaning(chosen.meaning),
+    backText: `Fórmula completa: ${f.formula}.`
   };
 }
 
 function buildQuestionFromConstant(c) {
-  const types = ["constantValue", "constantSymbol", "constantUse"];
+  const types = ["constantValue", "constantSymbol", "constantMeaning"];
   const type = sample(types);
   const constants = filteredConstants().length ? filteredConstants() : CONSTANTS;
   const base = { kind: "constant", source: c, topic: c.topic, variables: [] };
@@ -270,16 +288,16 @@ function buildQuestionFromConstant(c) {
     return {
       ...base,
       typeLabel: "Constante",
-      question: `¿Cuál es el valor de ${c.symbol}?`,
-      formula: c.name,
+      question: `¿Cuál es el valor aproximado de ${c.symbol}?`,
+      formula: "",
       correct: c.value,
-      options: wrongOptions(c.value, constants.map((x) => x.value)),
-      explanation: c.explanation,
+      options: wrongOptions(c.value, CONSTANTS.map((x) => x.value)),
+      explanation: `${c.symbol} es ${c.name}. ${c.explanation}`,
       extra: `${c.symbol} = ${c.value}.`,
       frontTitle: c.symbol,
-      frontText: c.name,
+      frontText: "Recuerda su valor aproximado.",
       backTitle: c.value,
-      backText: c.explanation
+      backText: `${c.name}. ${c.explanation}`
     };
   }
 
@@ -291,7 +309,7 @@ function buildQuestionFromConstant(c) {
       formula: "",
       correct: c.symbol,
       options: wrongOptions(c.symbol, constants.map((x) => x.symbol)),
-      explanation: c.explanation,
+      explanation: `${c.name} se representa como ${c.symbol}.`,
       extra: `Valor: ${c.value}.`,
       frontTitle: c.name,
       frontText: "Recuerda el símbolo.",
@@ -302,17 +320,17 @@ function buildQuestionFromConstant(c) {
 
   return {
     ...base,
-    typeLabel: "Uso de constante",
-    question: `¿Dónde suele aparecer ${c.symbol}?`,
-    formula: `${c.symbol} = ${c.value}`,
-    correct: c.explanation,
-    options: wrongOptions(c.explanation, CONSTANTS.map((x) => x.explanation)),
-    explanation: c.explanation,
-    extra: `${c.name}: ${c.value}.`,
-    frontTitle: `${c.symbol} = ${c.value}`,
-    frontText: "Piensa cuándo se usa.",
+    typeLabel: "Qué es",
+    question: `¿Qué representa ${c.symbol}?`,
+    formula: "",
+    correct: c.name,
+    options: wrongOptions(c.name, CONSTANTS.map((x) => x.name)),
+    explanation: `${c.symbol} representa ${c.name}.`,
+    extra: `Valor: ${c.value}. ${c.explanation}`,
+    frontTitle: c.symbol,
+    frontText: "Di qué constante o carga representa.",
     backTitle: c.name,
-    backText: c.explanation
+    backText: `Valor: ${c.value}. ${c.explanation}`
   };
 }
 
@@ -600,11 +618,30 @@ function renderFormulaList() {
   });
 }
 
+function applyUiSize(size) {
+  const safe = ["small", "medium", "large"].includes(size) ? size : "medium";
+  document.body.classList.remove("size-small", "size-medium", "size-large");
+  document.body.classList.add(`size-${safe}`);
+  if (els.uiSizeSelect) els.uiSizeSelect.value = safe;
+  localStorage.setItem("pauUiSize", safe);
+}
+
+function setControlsCollapsed(collapsed) {
+  els.controlsPanel.classList.toggle("controls-collapsed", collapsed);
+  els.toggleControlsBtn.textContent = collapsed ? "Mostrar opciones" : "Ocultar opciones";
+}
+
+function toggleControls() {
+  setControlsCollapsed(!els.controlsPanel.classList.contains("controls-collapsed"));
+}
+
 function start() {
   state.practice = els.practiceSelect.value;
   state.mode = els.modeSelect.value;
   state.topic = els.topicSelect.value;
   state.hideMeta = els.hideMetaToggle.checked;
+  applyUiSize(els.uiSizeSelect.value);
+  setControlsCollapsed(true);
 
   if (state.mode === "review") buildQueue();
   else {
@@ -657,6 +694,8 @@ els.missBtn.addEventListener("click", () => markFlashcard(false));
 els.practiceSelect.addEventListener("change", updatePracticeView);
 els.modeSelect.addEventListener("change", start);
 els.topicSelect.addEventListener("change", start);
+els.uiSizeSelect.addEventListener("change", () => applyUiSize(els.uiSizeSelect.value));
+els.toggleControlsBtn.addEventListener("click", toggleControls);
 els.hideMetaToggle.addEventListener("change", () => {
   state.hideMeta = els.hideMetaToggle.checked;
   renderMeta();
@@ -682,5 +721,7 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && !els.solutionOverlay.hidden) closeSolution();
 });
 
+applyUiSize(localStorage.getItem("pauUiSize") || "medium");
+setControlsCollapsed(false);
 updateStats();
 loadQuizData();

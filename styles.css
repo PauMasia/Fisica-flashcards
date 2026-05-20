@@ -667,3 +667,170 @@ body.modal-open {
     grid-template-columns: 1fr;
   }
 }
+
+/* Menú de opciones plegable */
+.controls {
+  display: block;
+  padding: 0;
+  overflow: hidden;
+}
+
+.controls-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.controls-body {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: end;
+  padding: 12px;
+}
+
+.controls-collapsed .controls-body {
+  display: none;
+}
+
+.controls-collapsed {
+  margin-bottom: 10px;
+}
+
+/* Tamaños de interfaz guardados en cache */
+body.size-small .app {
+  width: min(760px, 100%);
+  padding: 8px;
+}
+
+body.size-small .header {
+  margin-bottom: 8px;
+}
+
+body.size-small .header h1 {
+  font-size: 22px;
+}
+
+body.size-small .header p {
+  display: none;
+}
+
+body.size-small .layout {
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+body.size-small .main-panel {
+  padding: 8px;
+  gap: 8px;
+}
+
+body.size-small .question-card {
+  min-height: 0;
+  padding: 10px;
+}
+
+body.size-small .card-top {
+  margin-bottom: 6px;
+}
+
+body.size-small .small-title {
+  margin-bottom: 4px;
+}
+
+body.size-small .question {
+  font-size: clamp(18px, 5.5vw, 22px);
+}
+
+body.size-small .formula-box {
+  margin: 8px 0;
+  padding: 10px;
+  font-size: clamp(22px, 7vw, 30px);
+}
+
+body.size-small .options-grid {
+  grid-template-columns: 1fr;
+  gap: 7px;
+  margin-top: 8px;
+}
+
+body.size-small .option-card {
+  min-height: 46px;
+  padding: 9px 10px;
+}
+
+body.size-small .side-panel {
+  display: none;
+}
+
+body.size-small .feedback-card {
+  display: none;
+}
+
+body.size-small .bottom-actions {
+  position: sticky;
+  bottom: 6px;
+  z-index: 10;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+}
+
+body.size-medium .question {
+  font-size: 28px;
+}
+
+body.size-medium .formula-box {
+  font-size: 36px;
+}
+
+body.size-large .app {
+  width: min(1280px, 96vw);
+}
+
+body.size-large .question {
+  font-size: 32px;
+}
+
+body.size-large .formula-box {
+  font-size: clamp(38px, 4.5vw, 52px);
+}
+
+body.size-large .option-card {
+  min-height: 76px;
+  font-size: 19px;
+}
+
+@media (max-width: 720px) {
+  .controls {
+    margin-bottom: 8px;
+  }
+
+  .controls-body {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .controls-body label:not(.check-row),
+  .controls-body select,
+  .controls-body button,
+  .controls-body .check-row {
+    width: 100%;
+  }
+
+  .solution-overlay {
+    align-items: end;
+  }
+
+  .solution-modal {
+    max-height: 76vh;
+  }
+}
